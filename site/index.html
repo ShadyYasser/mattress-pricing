@@ -60,6 +60,8 @@ input[type=text],input[type=number],input[type=email],input[type=password],selec
 input:focus,select:focus,textarea:focus{outline:2px solid #9cc0ea;border-color:var(--pri)}
 input.sm{width:72px}input.md{width:100px}input.w{width:100%}
 table.items td{padding:5px 6px}
+table.items tr.sub td{background:#fafbfc;font-size:13px;border-bottom:1px solid var(--line)}
+table.items tr[data-iid]:has(+tr.sub) td{border-bottom:none}
 table.items input[data-f=name]{width:100%;min-width:170px}
 .model-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .model-head .m-name{flex:1;min-width:200px;font-weight:600;font-size:16px}
@@ -110,13 +112,14 @@ ul.how{margin:6px 0 0;padding-inline-start:20px}ul.how li{margin-bottom:4px}
 const SUPABASE_URL="https://qaiyjxooiefcxzzigrpo.supabase.co";
 const SUPABASE_KEY="sb_publishable_LN6iGi6CxEvm6HZHC6fIrQ_6iuhmfd9";
 
-const CATS={fabric:"قماش",felt:"لباد",sponge:"إسفنج",rebond:"ريبوند",chassis:"شاسيه",glue:"غراء",packaging:"تغليف",labor:"مصنعية",other:"أخرى"};
-const CAT_DEFAULT={fabric:["cover","m2"],felt:["twoFaces","sheet"],sponge:["face","sheet"],rebond:["face","sheet"],chassis:["face","sheet"],glue:["face","sheet"],packaging:["fixed","sheet"],labor:["fixed","sheet"],other:["fixed","sheet"]};
-const METHODS={face:"وش واحد (العرض × الطول)",twoFaces:"وشين (لباد أساسي)",sides:"الجوانب بس (المحيط × الارتفاع)",cover:"وشين + جوانب (القماش)",fixed:"سعر ثابت للمرتبة"};
+const CATS={fabric:"قماش",felt:"لباد",sponge:"إسفنج",rebond:"ريبوند",chassis:"شاسيه",glue:"غراء",tape:"تيب / شريط",packaging:"تغليف",accessories:"زوايا وبوستر",labor:"مصنعية",other:"أخرى"};
+const CAT_DEFAULT={fabric:["cover","sheet"],felt:["perWidth","sheet"],sponge:["face","block"],rebond:["face","block"],chassis:["face","sheet"],glue:["fixed","sheet"],tape:["perWidth","sheet"],packaging:["perWidth","sheet"],accessories:["fixed","sheet"],labor:["fixed","sheet"],other:["fixed","sheet"]};
+const METHODS={face:"وش واحد (العرض × الطول)",twoFaces:"وشين (فوق وتحت)",sides:"الجوانب بس (المحيط × الارتفاع)",cover:"فوق + تحت + جوانب (القماش)",perWidth:"حسب عرض المرتبة",fixed:"سعر ثابت للمرتبة"};
+const AREA={face:1,twoFaces:1,sides:1,cover:1};
 const TYPES={spring:"سوست",medical:"طبي"};
 const OWNER_VIEWS={tables:"الجداول",mattresses:"المراتب",items:"المكونات",setup:"الإعدادات",users:"المستخدمين",backup:"نسخة احتياطية"};
 
-const SAMPLE={"v":1,"sample":true,"updatedAt":null,"settings":{"length":2,"widths":[90,100,120,140,160,180,200],"margins":{"spring":30,"medical":30},"round":10,"offer":{"on":false,"pct":35}},"items":[{"id":"i1","name":"قماش جاكار","cat":"fabric","t":0,"method":"cover","basis":"m2","price":55,"waste":10},{"id":"i7","name":"لباد أساسي","cat":"felt","t":0,"method":"twoFaces","basis":"sheet","price":35,"waste":0},{"id":"i8","name":"لباد جوانب","cat":"felt","t":0,"method":"sides","basis":"m2","price":12,"waste":0},{"id":"i2","name":"إسفنج 2 سم كثافة 25","cat":"sponge","t":2,"method":"face","basis":"sheet","price":110,"waste":0},{"id":"i3","name":"إسفنج 5 سم كثافة 30","cat":"sponge","t":5,"method":"face","basis":"sheet","price":330,"waste":0},{"id":"i4","name":"ريبوند 2 سم كثافة 80","cat":"rebond","t":2,"method":"face","basis":"sheet","price":140,"waste":0},{"id":"i5","name":"ريبوند 5 سم كثافة 100","cat":"rebond","t":5,"method":"face","basis":"sheet","price":420,"waste":0},{"id":"i6","name":"شاسيه بونيل 16 سم","cat":"chassis","t":16,"method":"face","basis":"sheet","price":850,"waste":0},{"id":"i9","name":"غراء","cat":"glue","t":0,"method":"face","basis":"sheet","price":25,"waste":0},{"id":"i10","name":"تغليف","cat":"packaging","t":0,"method":"fixed","basis":"sheet","price":45,"waste":0},{"id":"i11","name":"مصنعية","cat":"labor","t":0,"method":"fixed","basis":"sheet","price":120,"waste":0}],"models":[{"id":"m1","name":"مرتبة س — سوست نص طبي","type":"spring","hOverride":0,"parts":[{"itemId":"i1","qty":1},{"itemId":"i2","qty":2},{"itemId":"i4","qty":2},{"itemId":"i6","qty":1},{"itemId":"i7","qty":1},{"itemId":"i9","qty":1},{"itemId":"i10","qty":1},{"itemId":"i11","qty":1}]},{"id":"m2","name":"طبي ريبوند 20","type":"medical","hOverride":0,"parts":[{"itemId":"i1","qty":1},{"itemId":"i5","qty":4},{"itemId":"i7","qty":1},{"itemId":"i8","qty":1},{"itemId":"i9","qty":1},{"itemId":"i10","qty":1},{"itemId":"i11","qty":1}]},{"id":"m3","name":"طبي إسفنج وريبوند 25","type":"medical","hOverride":0,"parts":[{"itemId":"i1","qty":1},{"itemId":"i3","qty":3},{"itemId":"i5","qty":2},{"itemId":"i7","qty":1},{"itemId":"i9","qty":1},{"itemId":"i10","qty":1},{"itemId":"i11","qty":1}]}]};
+const SAMPLE={"v":2,"sample":true,"updatedAt":null,"settings":{"length":2,"widths":[90,100,120,140,160,180,200],"margins":{"spring":30,"medical":30},"round":10,"offer":{"on":false,"pct":35}},"items":[{"id":"i1","name":"قماش جاكار","cat":"fabric","t":0,"method":"cover","basis":"sheet","price":110,"waste":10},{"id":"f1","name":"لباد","cat":"felt","t":0,"method":"perWidth","basis":"sheet","price":140,"refW":120,"waste":0},{"id":"s3","name":"إسفنج 3 سم","cat":"sponge","t":3,"method":"face","basis":"block","price":0,"block":{"l":200,"w":120,"h":100,"price":6500},"waste":0},{"id":"s4","name":"إسفنج 4 سم","cat":"sponge","t":4,"method":"face","basis":"block","price":0,"block":{"l":200,"w":120,"h":100,"price":6500},"waste":0},{"id":"s5","name":"إسفنج 5 سم","cat":"sponge","t":5,"method":"face","basis":"block","price":0,"block":{"l":200,"w":120,"h":100,"price":6500},"waste":0},{"id":"r2","name":"ريبوند 2 سم","cat":"rebond","t":2,"method":"face","basis":"block","price":0,"block":{"l":200,"w":120,"h":14,"price":2000},"waste":0},{"id":"r5","name":"ريبوند 5 سم","cat":"rebond","t":5,"method":"face","basis":"block","price":0,"block":{"l":200,"w":120,"h":14,"price":2000},"waste":0},{"id":"c1","name":"شاسيه","cat":"chassis","t":16,"method":"face","basis":"sheet","price":1000,"waste":0},{"id":"g1","name":"غراء","cat":"glue","t":0,"method":"fixed","basis":"sheet","price":200,"waste":0},{"id":"tp","name":"تيب / شريط","cat":"tape","t":0,"method":"perWidth","basis":"sheet","price":50,"refW":100,"waste":0},{"id":"pk","name":"تغليف","cat":"packaging","t":0,"method":"perWidth","basis":"sheet","price":150,"refW":100,"waste":0},{"id":"ac","name":"زوايا + بوستر","cat":"accessories","t":0,"method":"fixed","basis":"sheet","price":100,"waste":0},{"id":"lb","name":"مصنعية","cat":"labor","t":0,"method":"fixed","basis":"sheet","price":120,"waste":0}],"models":[{"id":"m1","name":"مرتبة س — سوست نص طبي","type":"spring","hOverride":0,"parts":[{"itemId":"i1","qty":1},{"itemId":"s3","qty":2},{"itemId":"r2","qty":2},{"itemId":"c1","qty":1},{"itemId":"f1","qty":1},{"itemId":"g1","qty":1},{"itemId":"tp","qty":1},{"itemId":"pk","qty":1},{"itemId":"ac","qty":1},{"itemId":"lb","qty":1}]},{"id":"m2","name":"طبي ريبوند 20","type":"medical","hOverride":0,"parts":[{"itemId":"i1","qty":1},{"itemId":"r5","qty":4},{"itemId":"f1","qty":1},{"itemId":"g1","qty":1},{"itemId":"tp","qty":1},{"itemId":"pk","qty":1},{"itemId":"ac","qty":1},{"itemId":"lb","qty":1}]},{"id":"m3","name":"طبي إسفنج وريبوند 25","type":"medical","hOverride":0,"parts":[{"itemId":"i1","qty":1},{"itemId":"s5","qty":3},{"itemId":"r5","qty":2},{"itemId":"f1","qty":1},{"itemId":"g1","qty":1},{"itemId":"tp","qty":1},{"itemId":"pk","qty":1},{"itemId":"ac","qty":1},{"itemId":"lb","qty":1}]}]};
 
 let sb=null,me=null,S=null,rev=0,PL=null;
 let dirty=false,saving=false,saveAgain=false,saveErr=false,conflict=false,saveTimer=null,lastSaved=null;
@@ -143,9 +146,12 @@ const LEN=()=>num(S.settings.length)||2;
 const LCM=()=>Math.round(LEN()*100);
 const sz=(w,lcm)=>'<span class="ltr">'+w+'×'+lcm+'</span>';
 const itemById=id=>S.items.find(i=>i.id===id);
-function pricePerM2(it){return it.basis==="sheet"?num(it.price)/LEN():num(it.price);}
+function blk(it){const b=it.block||{};return{l:num(b.l)||200,w:num(b.w)||120,h:num(b.h)||100,price:num(b.price)};}
+function blockM3(it){const b=blk(it),v=b.l*b.w*b.h/1e6;return v>0?b.price/v:0;}
+function pricePerM2(it){if(it.basis==="block")return blockM3(it)*num(it.t)/100;return it.basis==="sheet"?num(it.price)/LEN():num(it.price);}
+const refW=it=>(num(it.refW)||100)/100;
 function areaOf(it,W,Hm){const L=LEN();switch(it.method){case"face":return W*L;case"twoFaces":return 2*W*L;case"sides":return 2*(W+L)*Hm;case"cover":return 2*W*L+2*(W+L)*Hm;default:return 0;}}
-function partCost(it,qty,W,Hm){if(!it)return 0;const q=num(qty);if(it.method==="fixed")return num(it.price)*q;return pricePerM2(it)*areaOf(it,W,Hm)*q*(1+num(it.waste)/100);}
+function partCost(it,qty,W,Hm){if(!it)return 0;const q=num(qty);if(it.method==="fixed")return num(it.price)*q;if(it.method==="perWidth")return num(it.price)*W/refW(it)*q;return pricePerM2(it)*areaOf(it,W,Hm)*q*(1+num(it.waste)/100);}
 function autoHeight(m){return m.parts.reduce((s,p)=>{const it=itemById(p.itemId);if(!it)return s;const t=num(it.t)*num(p.qty);return s+(it.method==="face"?t:it.method==="twoFaces"?2*t:0);},0);}
 function heightOf(m){return num(m.hOverride)>0?num(m.hOverride):autoHeight(m);}
 function costOf(m,Wcm){const W=Wcm/100,Hm=heightOf(m)/100;return m.parts.reduce((s,p)=>s+partCost(itemById(p.itemId),p.qty,W,Hm),0);}
@@ -158,6 +164,23 @@ function buildPriceList(){
   const ws=S.settings.widths;
   return{updatedAt:S.updatedAt||new Date().toISOString(),lengthCm:LCM(),widths:ws,offerOn:!!S.settings.offer.on,
     models:sortedModels().map(m=>({name:m.name,type:m.type,height:Math.round(heightOf(m)*10)/10,sale:ws.map(w=>saleOf(m,w)),offer:S.settings.offer.on?ws.map(w=>offerOf(m,w)):[]}))};
+}
+
+function unitHint(it){
+  if(AREA[it.method]){const v=pricePerM2(it)*LEN();return fmt(v,1)+" ج للمتر"+(it.basis==="block"?" بسمك "+fmtH(num(it.t))+" سم":"");}
+  if(it.method==="perWidth")return fmt(num(it.price)/refW(it),1)+" ج لمرتبة عرضها متر";
+  return fmt(num(it.price))+" ج للمرتبة";
+}
+function blockHint(it){const b=blk(it),m3=blockM3(it);return"المتر المكعب = "+fmt(m3,1)+" ج · 1 سم للمتر (1×"+fmtH(LEN())+") = "+fmt(m3*0.01*LEN(),2)+" ج";}
+// quantity used, in the unit the factory counts ("متر" = piece 1 m wide × length)
+function usageText(it,qty,W,Hm){
+  const q=num(qty),L=LEN(),wf=1+num(it.waste)/100;
+  if(it.method==="fixed")return"—";
+  if(it.method==="perWidth")return"عرض "+fmt(W*100)+" سم";
+  const unit=it.basis==="m2"?" م²":" متر",d=it.basis==="m2"?1:L;
+  const a=x=>fmt(x/d,2);
+  if(it.method==="cover"){const f=2*W*L*q,sd=2*(W+L)*Hm*q;return'<div>'+a((f+sd)*wf)+unit+'</div><div class="muted">فوق '+a(f/2)+' + تحت '+a(f/2)+' + جوانب '+a(sd)+(num(it.waste)?' + هالك '+fmt(num(it.waste))+'%':'')+'</div>';}
+  return a(areaOf(it,W,Hm)*q*wf)+unit;
 }
 
 /* ---------- generic price table (owner & viewer) ---------- */
@@ -266,7 +289,7 @@ async function loadOwner(){
     const ins=await sb.from("pricing_state").insert({id:1,data:S,rev:1,updated_by:me.user_id});
     if(ins.error)return renderMessage("حصل خطأ",esc(errMsg(ins.error)));
     rev=1;await sb.from("price_list").upsert({id:1,data:buildPriceList(),updated_at:S.updatedAt});
-  }else{S=data.data;rev=data.rev;}
+  }else{S=data.data;rev=data.rev;sb.from("price_list").upsert({id:1,data:buildPriceList(),updated_at:S.updatedAt||new Date().toISOString()}).then(()=>{});}
   try{const h=location.hash.slice(1);if(OWNER_VIEWS[h])view=h;}catch(e){}
   renderShell();
 }
@@ -345,10 +368,10 @@ function partInfo(it){if(!it)return"";const bits=[METHODS[it.method].split(" (")
 function pw(m){const ws=S.settings.widths;let w=previewW[m.id];if(!ws.includes(w))w=ws.includes(160)?160:ws[Math.floor(ws.length/2)]||100;return w;}
 function breakdown(m){
   const w=pw(m),W=w/100,Hm=heightOf(m)/100;
-  const rows=m.parts.map(p=>{const it=itemById(p.itemId);if(!it)return"";const a=it.method==="fixed"?"—":fmt(areaOf(it,W,Hm)*num(p.qty)*(1+num(it.waste)/100),2);return'<tr><td>'+esc(it.name)+'</td><td class="n">'+fmt(num(p.qty),num(p.qty)%1?1:0)+'</td><td class="n">'+a+'</td><td class="n">'+fmt(partCost(it,p.qty,W,Hm),1)+'</td></tr>';}).join("");
+  const rows=m.parts.map(p=>{const it=itemById(p.itemId);if(!it)return"";const a=usageText(it,p.qty,W,Hm);return'<tr><td>'+esc(it.name)+'</td><td class="n">'+fmt(num(p.qty),num(p.qty)%1?1:0)+'</td><td class="n">'+a+'</td><td class="n">'+fmt(partCost(it,p.qty,W,Hm),1)+'</td></tr>';}).join("");
   let f='<tr><td colspan="3">تكلفة التصنيع</td><td class="n">'+fmt(costOf(m,w),1)+'</td></tr><tr class="sale"><td colspan="3">سعر البيع (+'+fmt(num(S.settings.margins[m.type]))+'%)</td><td class="n">'+fmt(saleOf(m,w))+'</td></tr>';
   if(S.settings.offer.on)f+='<tr class="offer"><td colspan="3">سعر العروض</td><td class="n">'+fmt(offerOf(m,w))+'</td></tr>';
-  return'<table class="bd"><thead><tr><th>المكون</th><th class="n">العدد</th><th class="n">م² مستخدمة</th><th class="n">التكلفة</th></tr></thead><tbody>'+(rows||'<tr><td colspan="4" class="muted">مفيش مكونات</td></tr>')+'</tbody><tfoot>'+f+'</tfoot></table>';
+  return'<table class="bd"><thead><tr><th>المكون</th><th class="n">العدد</th><th class="n">الكمية</th><th class="n">التكلفة</th></tr></thead><tbody>'+(rows||'<tr><td colspan="4" class="muted">مفيش مكونات</td></tr>')+'</tbody><tfoot>'+f+'</tfoot></table>';
 }
 function modelCard(m){
   const ah=autoHeight(m),w=pw(m);
@@ -380,21 +403,32 @@ function usedCount(id){return S.models.filter(m=>m.parts.some(p=>p.itemId===id))
 function viewItems(){
   const order=Object.keys(CATS);
   const list=S.items.filter(i=>itemFilter==="all"||i.cat===itemFilter).sort((a,b)=>order.indexOf(a.cat)-order.indexOf(b.cat));
-  let h='<div class="bar"><select id="item-filter"><option value="all">كل الأنواع</option>'+Object.entries(CATS).map(([k,v])=>'<option value="'+k+'" '+(k===itemFilter?"selected":"")+'>'+v+'</option>').join("")+'</select><span class="muted grow">«لوح» = قطعة عرضها 1 متر وطولها '+LCM()+' سم. مرتبة عرضها 160 بتاخد 1.6 لوح من كل طبقة.</span><button class="btn pri" data-act="add-item">+ مكون جديد</button></div>';
-  h+='<div class="card scroll"><table class="items"><thead><tr><th>الاسم</th><th>النوع</th><th>السُمك (سم)</th><th>طريقة الحساب</th><th>السعر (ج)</th><th>السعر لـ</th><th>هالك %</th><th>في مراتب</th><th></th></tr></thead><tbody>';
-  if(!list.length)h+='<tr><td colspan="9" class="empty">مفيش مكونات</td></tr>';
+  let h='<div class="bar"><select id="item-filter"><option value="all">كل الأنواع</option>'+Object.entries(CATS).map(([k,v])=>'<option value="'+k+'" '+(k===itemFilter?"selected":"")+'>'+v+'</option>').join("")+'</select><span class="muted grow">«متر» = قطعة عرضها 1 متر وطولها '+LCM()+' سم. مرتبة عرضها 160 بتاخد 1.6 متر من كل طبقة.</span><button class="btn pri" data-act="add-item">+ مكون جديد</button></div>';
+  h+='<div class="card scroll"><table class="items"><thead><tr><th>الاسم</th><th>النوع</th><th>السُمك (سم)</th><th>طريقة الحساب</th><th>السعر (ج)</th><th>السعر لـ</th><th>هالك %</th><th>يعني</th><th>في مراتب</th><th></th></tr></thead><tbody>';
+  if(!list.length)h+='<tr><td colspan="10" class="empty">مفيش مكونات</td></tr>';
   for(const it of list){
+    const area=!!AREA[it.method],isBlock=area&&it.basis==="block";
+    let priceCell,forCell;
+    if(isBlock)priceCell='<span class="muted">من البلوك ↓</span>';
+    else priceCell='<input type="number" step="any" min="0" class="md" data-f="price" value="'+num(it.price)+'">';
+    if(area)forCell='<select data-f="basis"><option value="sheet" '+(it.basis==="sheet"?"selected":"")+'>المتر (1 × '+fmtH(LEN())+' م)</option><option value="m2" '+(it.basis==="m2"?"selected":"")+'>متر مربع</option><option value="block" '+(it.basis==="block"?"selected":"")+'>من البلوك</option></select>';
+    else if(it.method==="perWidth")forCell='<span class="muted">مرتبة عرض</span> <input type="number" step="any" min="1" class="sm" data-f="refW" value="'+(num(it.refW)||100)+'"> <span class="muted">سم</span>';
+    else forCell='<span class="muted">المرتبة</span>';
     h+='<tr data-iid="'+it.id+'"><td><input type="text" data-f="name" value="'+esc(it.name)+'"></td>'+
      '<td><select data-f="cat">'+Object.entries(CATS).map(([k,v])=>'<option value="'+k+'" '+(k===it.cat?"selected":"")+'>'+v+'</option>').join("")+'</select></td>'+
      '<td><input type="number" step="any" min="0" class="sm" data-f="t" value="'+num(it.t)+'"></td>'+
      '<td><select data-f="method">'+Object.entries(METHODS).map(([k,v])=>'<option value="'+k+'" '+(k===it.method?"selected":"")+'>'+v+'</option>').join("")+'</select></td>'+
-     '<td><input type="number" step="any" min="0" class="md" data-f="price" value="'+num(it.price)+'"></td>'+
-     '<td>'+(it.method==="fixed"?'<span class="muted">المرتبة</span>':'<select data-f="basis"><option value="sheet" '+(it.basis==="sheet"?"selected":"")+'>لوح 1 × '+fmtH(LEN())+' م</option><option value="m2" '+(it.basis==="m2"?"selected":"")+'>متر مربع</option></select>')+'</td>'+
-     '<td>'+(it.method==="fixed"?'<span class="muted">—</span>':'<input type="number" step="any" min="0" class="sm" data-f="waste" value="'+num(it.waste)+'">')+'</td>'+
+     '<td>'+priceCell+'</td><td style="white-space:nowrap">'+forCell+'</td>'+
+     '<td>'+(area?'<input type="number" step="any" min="0" class="sm" data-f="waste" value="'+num(it.waste)+'">':'<span class="muted">—</span>')+'</td>'+
+     '<td class="muted u-hint" style="white-space:nowrap">'+esc(unitHint(it))+'</td>'+
      '<td class="muted">'+usedCount(it.id)+'</td><td><button class="icon" data-act="del-item" title="حذف">✕</button></td></tr>';
+    if(isBlock){const b=blk(it);
+      h+='<tr class="sub" data-iid="'+it.id+'"><td colspan="10">البلوك: طول <input type="number" step="any" class="sm" data-f="block.l" value="'+b.l+'"> × عرض <input type="number" step="any" class="sm" data-f="block.w" value="'+b.w+'"> × ارتفاع <input type="number" step="any" class="sm" data-f="block.h" value="'+b.h+'"> سم، وسعره <input type="number" step="any" class="md" data-f="block.price" value="'+b.price+'"> ج'+
+        ' <b class="t-warn" style="color:var(--danger)"'+(num(it.t)>0?' hidden':'')+'>— اكتب السُمك فوق</b>'+' <span class="muted b-hint">'+esc(blockHint(it))+'</span></td></tr>';}
   }
   return h+'</tbody></table></div>';
 }
+function refreshItemHints(id){const it=itemById(id);if(!it)return;document.querySelectorAll('[data-iid="'+id+'"] .u-hint').forEach(e=>e.textContent=unitHint(it));document.querySelectorAll('[data-iid="'+id+'"] .b-hint').forEach(e=>e.textContent=blockHint(it));document.querySelectorAll('[data-iid="'+id+'"] .t-warn').forEach(e=>e.hidden=num(it.t)>0);}
 
 /* ---------- owner: setup ---------- */
 function viewSetup(){
@@ -408,12 +442,14 @@ function viewSetup(){
    '<label>جدول العروض</label><div><label class="switch"><input type="checkbox" data-sf="offer.on" '+(s.offer.on?"checked":"")+'> مفعّل</label> &nbsp; زيادة <input type="number" step="any" class="sm" data-sf="offer.pct" value="'+num(s.offer.pct)+'"> % على سعر البيع</div>'+
    '</div></div>'+
    '<div class="card"><h2>الحساب بيمشي إزاي</h2><ul class="how muted">'+
-   '<li><b>وش واحد</b> (إسفنج، ريبوند، شاسيه، غراء): العرض × الطول × عدد الطبقات × السعر.</li>'+
-   '<li><b>وشين</b> (لباد أساسي): نفس اللي فوق × 2.</li>'+
+   '<li><b>وش واحد</b> (إسفنج، ريبوند، شاسيه): العرض × الطول × عدد الطبقات × السعر.</li>'+
+   '<li><b>وشين</b>: نفس اللي فوق × 2.</li>'+
    '<li><b>الجوانب</b> (لباد جوانب): 2 × (العرض + الطول) × الارتفاع.</li>'+
-   '<li><b>وشين + جوانب</b> (القماش): مساحة الوشين + مساحة الجوانب، وبعدين يتزوّد عليها الهالك.</li>'+
-   '<li><b>ثابت</b> (تغليف، مصنعية): نفس السعر في كل المقاسات.</li>'+
-   '<li>السعر «للوح» معناه قطعة عرضها 1 متر وطولها '+LCM()+' سم، والسعر «للمتر المربع» بيتضرب في المساحة على طول.</li>'+
+   '<li><b>فوق + تحت + جوانب</b> (القماش): مرتبة متر بتاخد متر فوق ومتر تحت، والجوانب = 2 × (العرض + الطول) × الارتفاع ÷ '+fmtH(LEN())+', وبعدين يتزوّد الهالك. في «المراتب» بتلاقي الكمية متقسمة فوق وتحت وجوانب.</li>'+
+   '<li><b>حسب عرض المرتبة</b> (لباد، تيب، تغليف): تكتب السعر لمرتبة عرض معيّن، ويتقسم ويتضرب في العرض. مثلاً لباد 140 ج لمرتبة 120 ← مرتبة 160 = 140 ÷ 1.2 × 1.6.</li>'+
+   '<li><b>ثابت</b> (غراء، زوايا وبوستر، مصنعية): نفس السعر في كل المقاسات.</li>'+
+   '<li><b>من البلوك</b> (إسفنج، ريبوند): سعر البلوك ÷ حجمه بالمتر المكعب = سعر المتر المكعب، وبعدين × مساحة الطبقة × سُمكها.</li>'+
+   '<li>«المتر» معناه قطعة عرضها 1 متر وطولها '+LCM()+' سم، والسعر «للمتر المربع» بيتضرب في المساحة على طول.</li>'+
    '<li>الارتفاع = مجموع سُمك طبقات «وش واحد» + سُمك «الوشين» × 2، إلا لو كتبت ارتفاع يدوي.</li>'+
    '<li>سعر البيع = التكلفة × (1 + نسبة الربح)، متقرّب لفوق. وسعر العروض = سعر البيع × (1 + نسبة العرض).</li>'+
    '<li>المشاهدين بيشوفوا سعر البيع (وسعر العروض لو مفعّل) بس — مش بيشوفوا التكلفة ولا المكونات.</li></ul></div>';
@@ -482,9 +518,11 @@ document.addEventListener("input",e=>{
   const val=el.type==="number"?num(el.value):el.type==="checkbox"?el.checked:el.value;
   const irow=el.closest("[data-iid]");
   if(irow&&el.dataset.f){
-    const it=itemById(irow.dataset.iid);if(!it)return;const f=el.dataset.f;it[f]=val;
+    const it=itemById(irow.dataset.iid);if(!it)return;const f=el.dataset.f;
+    if(f.includes(".")){const [a,k]=f.split(".");it[a]=Object.assign({},it[a]||{},{[k]:val});}else it[f]=val;
     if(f==="cat"){const d=CAT_DEFAULT[val]||["fixed","sheet"];it.method=d[0];it.basis=d[1];}
-    markDirty();if(f==="cat"||f==="method")renderView();return;
+    if(f==="basis"&&val==="block"&&!it.block)it.block={l:200,w:120,h:100,price:0};
+    markDirty();if(f==="cat"||f==="method"||f==="basis")renderView();else refreshItemHints(it.id);return;
   }
   const card=el.closest("[data-mid]");
   if(card){

@@ -16,7 +16,8 @@ Pricing tool for an Egyptian mattress maker: components (fabric, felt, sponge, r
 - Accounts are created by SQL (`_create_auth_user`) — there is no public sign-up in the UI.
 
 ## Pricing rules
-- Item `method`: face (W×L), twoFaces (2·W·L), sides (2·(W+L)·H), cover (2·W·L + 2·(W+L)·H), fixed (per mattress). `basis`: sheet (price per 1 m × length piece) or m2. `waste` % applies to area methods.
+- Item `method`: face (W×L), twoFaces (2·W·L), sides (2·(W+L)·H), cover (2·W·L + 2·(W+L)·H), perWidth (price for a mattress of width `refW` cm, scaled by W), fixed (per mattress). `basis` for area methods: sheet ("متر" = 1 m × length piece), m2, or block (`block` {l,w,h cm, price} → price per m³ × thickness). `waste` % applies to area methods.
+- The factory counts fabric and foam in "متر" = a 1 m × 2 m piece; the breakdown shows fabric split into top, bottom and sides in that unit.
 - Height = Σ thickness×qty for face + 2×thickness×qty for twoFaces, unless `hOverride` > 0.
 - Sale = cost × (1 + margin[type]%) rounded up to `round`; offer = sale × (1 + offer.pct%) rounded up.
 
