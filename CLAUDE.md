@@ -10,7 +10,7 @@ Pricing tool for an Egyptian mattress maker: components (fabric, felt, sponge, r
 
 ## Data model
 - `pricing_state` (single row id=1): `data` jsonb = `{settings, items, models, updatedAt, sample}`; `rev` int for optimistic concurrency (client updates `where rev = known`; 0 rows = conflict banner).
-- `price_list` (single row id=1): computed sale/offer tables only (no costs) — written by the owner client on every save, read by viewers.
+- `price_list` (single row id=1): `{kinds, widths, models[].prices{kind:[...]}}` with only the viewer-visible levels (no costs) — written by the owner client on every save, read by viewers.
 - `members` (user_id, email, role owner|viewer, must_change_password). RLS: owner reads/writes state; owner+viewer read price_list.
 - RPCs (security definer, owner-checked): `create_viewer(email,password)`, `reset_member_password(user_id,password)`, `delete_member(user_id)`; `password_changed()` for self; `keepalive()` for anon.
 - Accounts are created by SQL (`_create_auth_user`) — there is no public sign-up in the UI.
@@ -19,7 +19,8 @@ Pricing tool for an Egyptian mattress maker: components (fabric, felt, sponge, r
 - Item `method`: face (W×L), twoFaces (2·W·L), sides (2·(W+L)·H), cover (2·W·L + 2·(W+L)·H), perWidth (price for a mattress of width `refW` cm, scaled by W), fixed (per mattress). `basis` for area methods: sheet ("متر" = 1 m × length piece), m2, or block (`block` {l,w,h cm, price} → price per m³ × thickness). `waste` % applies to area methods.
 - The factory counts fabric and foam in "متر" = a 1 m × 2 m piece; the breakdown shows fabric split into top, bottom and sides in that unit.
 - Height = Σ thickness×qty for face + 2×thickness×qty for twoFaces, unless `hOverride` > 0.
-- Sale = cost × (1 + margin[type]%) rounded up to `round`; offer = sale × (1 + offer.pct%) rounded up.
+- Four price levels, each rounded up to `round`: cost → base (father's price) = cost × (1 + margins[type]%) → mine (owner's price to customers) = base × (1 + myMargins[type]%) → offer (pre-discount, optional) = mine × (1 + offer.pct%).
+- `settings.viewer` {base, mine, offer} picks which levels are written to `price_list`; viewers never receive levels that are switched off, and never the cost.
 
 ## Conventions
 - UI text in Egyptian Arabic; code and commits in English.
