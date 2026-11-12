@@ -66,15 +66,19 @@ table.items input[data-f=name]{width:100%;min-width:170px}
 .model-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 .model-head .m-name{flex:1;min-width:200px;font-weight:600;font-size:16px}
 .pill{background:var(--pri-soft);color:var(--pri);border-radius:20px;padding:3px 12px;font-size:13px;font-weight:600;white-space:nowrap}
-.grid2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
-@media (max-width:900px){.grid2{grid-template-columns:1fr}}
-table.parts td{padding:5px 6px}
-table.parts select{width:100%;min-width:160px}
-table.bd td,table.bd th{font-size:13px;padding:5px 8px}
-table.bd td.n{text-align:center;font-variant-numeric:tabular-nums}
-table.bd tfoot td{font-weight:700;border-bottom:none}
-table.bd tfoot tr.sale td{color:var(--ok)}
-table.bd tfoot tr.offer td{color:var(--warn)}
+table.parts{table-layout:fixed;min-width:760px}
+table.parts td{padding:6px 8px}
+table.parts td.n,table.parts th.n{text-align:center;font-variant-numeric:tabular-nums}
+table.parts select{width:100%}
+table.parts input.sm{width:64px;text-align:center}
+table.parts td.p-use{font-size:13px}
+table.parts td.p-use .muted{font-size:12px}
+table.parts td.p-cost{font-weight:600}
+table.parts tbody.add-row td{border-bottom:none;padding-top:10px}
+table.parts tfoot td{font-weight:700;border-bottom:none;padding:6px 8px}
+table.parts tfoot tr.tot td{border-top:2px solid var(--line)}
+table.parts tfoot tr.sale td{color:var(--ok)}
+table.parts tfoot tr.offer td{color:var(--warn)}
 .form{display:grid;grid-template-columns:200px 1fr;gap:10px 16px;align-items:center;max-width:720px}
 @media (max-width:600px){.form{grid-template-columns:1fr}}
 .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
@@ -373,16 +377,16 @@ function itemOptions(sel){
 }
 function partInfo(it){if(!it)return"";const bits=[METHODS[it.method].split(" (")[0]];if(num(it.t)>0)bits.unshift(fmtH(num(it.t))+" سم");return bits.join(" · ");}
 function pw(m){const ws=S.settings.widths;let w=previewW[m.id];if(!ws.includes(w))w=ws.includes(160)?160:ws[Math.floor(ws.length/2)]||100;return w;}
-function breakdown(m){
-  const w=pw(m),W=w/100,Hm=heightOf(m)/100;
-  const rows=m.parts.map(p=>{const it=itemById(p.itemId);if(!it)return"";const a=usageText(it,p.qty,W,Hm);return'<tr><td>'+esc(it.name)+'</td><td class="n">'+fmt(num(p.qty),num(p.qty)%1?1:0)+'</td><td class="n">'+a+'</td><td class="n">'+fmt(partCost(it,p.qty,W,Hm),1)+'</td></tr>';}).join("");
-  const st=S.settings;
-  let f='<tr><td colspan="3">تكلفة التصنيع</td><td class="n">'+fmt(costOf(m,w),1)+'</td></tr>'+
-   '<tr class="sale"><td colspan="3">سعر الوالد (+'+fmt(num(st.margins[m.type]))+'%)</td><td class="n">'+fmt(baseOf(m,w))+'</td></tr>'+
-   '<tr class="sale"><td colspan="3">سعري (+'+fmt(num(st.myMargins[m.type]))+'%)</td><td class="n">'+fmt(mineOf(m,w))+'</td></tr>';
-  if(st.offer.on)f+='<tr class="offer"><td colspan="3">سعر العروض (+'+fmt(num(st.offer.pct))+'%)</td><td class="n">'+fmt(offerOf(m,w))+'</td></tr>';
-  return'<table class="bd"><thead><tr><th>المكون</th><th class="n">العدد</th><th class="n">الكمية</th><th class="n">التكلفة</th></tr></thead><tbody>'+(rows||'<tr><td colspan="4" class="muted">مفيش مكونات</td></tr>')+'</tbody><tfoot>'+f+'</tfoot></table>';
+// One table per mattress: every component row carries its inputs, the quantity used and its cost, so rows line up.
+function totalsHTML(m){
+  const w=pw(m),st=S.settings;
+  let f='<tr class="tot"><td colspan="4">تكلفة التصنيع</td><td class="n">'+fmt(costOf(m,w),1)+'</td><td></td></tr>'+
+   '<tr class="sale"><td colspan="4">سعر الوالد (+'+fmt(num(st.margins[m.type]))+'%)</td><td class="n">'+fmt(baseOf(m,w))+'</td><td></td></tr>'+
+   '<tr class="sale"><td colspan="4">سعري (+'+fmt(num(st.myMargins[m.type]))+'%)</td><td class="n">'+fmt(mineOf(m,w))+'</td><td></td></tr>';
+  if(st.offer.on)f+='<tr class="offer"><td colspan="4">سعر العروض (+'+fmt(num(st.offer.pct))+'%)</td><td class="n">'+fmt(offerOf(m,w))+'</td><td></td></tr>';
+  return f;
 }
+function partCalc(m,p){const it=itemById(p.itemId);if(!it)return{use:"",cost:""};const W=pw(m)/100,Hm=heightOf(m)/100;return{use:usageText(it,p.qty,W,Hm),cost:fmt(partCost(it,p.qty,W,Hm),1)};}
 function modelCard(m){
   const ah=autoHeight(m),w=pw(m);
   return'<div class="card" data-mid="'+m.id+'">'+
@@ -390,11 +394,12 @@ function modelCard(m){
    '<select data-mf="type">'+Object.entries(TYPES).map(([k,v])=>'<option value="'+k+'" '+(k===m.type?"selected":"")+'>'+v+'</option>').join("")+'</select>'+
    '<span class="pill">الارتفاع <b class="h-val">'+fmtH(heightOf(m))+'</b> سم</span>'+
    '<label class="muted">ارتفاع يدوي <input type="number" step="any" class="sm" data-mf="hOverride" value="'+(num(m.hOverride)>0?num(m.hOverride):"")+'" placeholder="'+fmtH(ah)+'"></label>'+
+   '<label class="muted">الحساب لمقاس <select data-pw="1">'+S.settings.widths.map(x=>'<option value="'+x+'" '+(x===w?"selected":"")+'>'+x+' × '+LCM()+'</option>').join("")+'</select></label>'+
    '<button class="btn sm" data-act="dup-model">نسخ</button><button class="btn sm danger" data-act="del-model">حذف</button></div>'+
-   '<div class="grid2"><div><table class="parts"><thead><tr><th>المكون</th><th>العدد / الطبقات</th><th></th><th></th></tr></thead><tbody>'+
-   m.parts.map((p,i)=>{const it=itemById(p.itemId);return'<tr data-pi="'+i+'"><td><select data-pf="itemId">'+itemOptions(p.itemId)+'</select></td><td><input type="number" step="any" min="0" class="sm" data-pf="qty" value="'+num(p.qty)+'"></td><td class="muted p-info">'+partInfo(it)+'</td><td><button class="icon" data-act="del-part" title="شيل">✕</button></td></tr>';}).join("")+
-   '</tbody></table><div style="margin-top:8px"><button class="btn sm" data-act="add-part">+ مكون</button></div></div>'+
-   '<div><div class="bar" style="margin-bottom:6px"><span class="muted">تفاصيل الحساب لمقاس</span><select data-pw="1">'+S.settings.widths.map(x=>'<option value="'+x+'" '+(x===w?"selected":"")+'>'+x+' × '+LCM()+'</option>').join("")+'</select></div><div class="bd-wrap">'+breakdown(m)+'</div></div></div></div>';
+   '<div class="scroll"><table class="parts"><colgroup><col style="width:30%"><col style="width:9%"><col style="width:17%"><col style="width:26%"><col style="width:12%"><col style="width:6%"></colgroup>'+
+   '<thead><tr><th>المكون</th><th class="n">العدد</th><th>الطريقة</th><th class="n">الكمية</th><th class="n">التكلفة</th><th></th></tr></thead><tbody>'+
+   (m.parts.length?m.parts.map((p,i)=>{const it=itemById(p.itemId),c=partCalc(m,p);return'<tr data-pi="'+i+'"><td><select data-pf="itemId">'+itemOptions(p.itemId)+'</select></td><td class="n"><input type="number" step="any" min="0" class="sm" data-pf="qty" value="'+num(p.qty)+'"></td><td class="muted p-info">'+partInfo(it)+'</td><td class="n p-use">'+c.use+'</td><td class="n p-cost">'+c.cost+'</td><td class="n"><button class="icon" data-act="del-part" title="شيل">✕</button></td></tr>';}).join(""):'<tr><td colspan="6" class="muted">مفيش مكونات — اضغط «+ مكون»</td></tr>')+
+   '</tbody><tbody class="add-row"><tr><td colspan="6"><button class="btn sm" data-act="add-part">+ مكون</button></td></tr></tbody><tfoot class="totals">'+totalsHTML(m)+'</tfoot></table></div></div>';
 }
 function viewModels(){
   return'<div class="bar"><span class="muted grow">كل مرتبة = مكونات من تبويب «المكونات» × عدد الطبقات. الارتفاع بيتحسب لوحده من سُمك الطبقات، ولو كتبت ارتفاع يدوي هو اللي هيتحسب بيه قماش الجوانب.</span><button class="btn pri" data-act="add-model">+ مرتبة جديدة</button></div>'+
@@ -404,8 +409,8 @@ function refreshModelCard(card){
   const m=S.models.find(x=>x.id===card.dataset.mid);if(!m)return;
   card.querySelector(".h-val").textContent=fmtH(heightOf(m));
   card.querySelector('[data-mf="hOverride"]').placeholder=fmtH(autoHeight(m));
-  card.querySelector(".bd-wrap").innerHTML=breakdown(m);
-  card.querySelectorAll("tr[data-pi]").forEach(tr=>{const p=m.parts[+tr.dataset.pi];tr.querySelector(".p-info").textContent=partInfo(p&&itemById(p.itemId));});
+  card.querySelectorAll("tr[data-pi]").forEach(tr=>{const p=m.parts[+tr.dataset.pi];if(!p)return;const c=partCalc(m,p);tr.querySelector(".p-info").textContent=partInfo(itemById(p.itemId));tr.querySelector(".p-use").innerHTML=c.use;tr.querySelector(".p-cost").textContent=c.cost;});
+  card.querySelector(".totals").innerHTML=totalsHTML(m);
 }
 
 /* ---------- owner: items ---------- */
