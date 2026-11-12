@@ -1,6 +1,6 @@
 # Mattress pricing (تسعير المراتب)
 
-Pricing tool for an Egyptian mattress maker: components (fabric, felt, sponge, rebond, spring chassis, glue, packaging, labor) are combined into mattress models; the site outputs manufacturing-cost, sale-price and optional "offer" (pre-discount) tables for every width at a fixed length.
+Pricing tool for an Egyptian mattress maker. Mattress types: spring (سوست), semi (نص طبي), medical (طبي); margins are set per type. components (fabric, felt, sponge, rebond, spring chassis, glue, packaging, labor) are combined into mattress models; the site outputs manufacturing-cost, sale-price and optional "offer" (pre-discount) tables for every width at a fixed length.
 
 ## Stack
 - Single static page `site/index.html` (vanilla JS, Arabic RTL, no build). supabase-js v2 from jsDelivr.
