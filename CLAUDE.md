@@ -23,7 +23,7 @@ Recipes (Nov 2026): foams are priced per 1 cm (t=1, qty = cm) from a reference s
 - Item `method`: face (W×L), twoFaces (2·W·L), sides (2·(W+L)·H), cover (2·W·L + 2·(W+L)·H), perWidth (price for a mattress of width `refW` cm, scaled by W), fixed (per mattress). `basis` for area methods: sheet ("متر" = 1 m × length piece), m2, or block (`block` {l,w,h cm, price} → price per m³ × thickness). `waste` % applies to area methods.
 - The factory counts fabric and foam in "متر" = a 1 m × 2 m piece; the breakdown shows fabric split into top, bottom and sides in that unit.
 - Height = Σ thickness×qty for face + 2×thickness×qty for twoFaces, unless `hOverride` > 0.
-- Four price levels, each rounded up to `round`: cost → base (father's price) = cost × (1 + margins[type]%) → mine (owner's price to customers) = base × (1 + myMargins[type]%) → offer (pre-discount, optional) = mine × (1 + offer.pct%).
+- Four price levels, each rounded up to `round`: cost → base (father's price) = cost × (1 + margins[type]%) → mine (owner's price to customers) = base + cost × myMargins[type]% (the owner's share is a % of the cost, not of the base) → offer (pre-discount, optional) = mine × (1 + offer.pct%).
 - `settings.viewer` {base, mine, offer} picks which levels are written to `price_list`; viewers never receive levels that are switched off, and never the cost.
 
 ## Conventions

@@ -164,7 +164,8 @@ function roundUp(x){const st=num(S.settings.round);return st>0?Math.ceil(x/st-1e
 // price levels: cost -> base (father's sale price) -> mine (my price to customers) -> offer (pre-discount)
 function normalize(){const st=S.settings;st.margins=st.margins||{};st.myMargins=st.myMargins||{};for(const t of TYPE_ORDER){if(st.margins[t]==null)st.margins[t]=num(st.margins.medical);if(st.myMargins[t]==null)st.myMargins[t]=num(st.myMargins.medical);}st.offer=st.offer||{on:false,pct:0};st.viewer=Object.assign({base:false,mine:true,offer:true},st.viewer||{});}
 function baseOf(m,Wcm){return roundUp(costOf(m,Wcm)*(1+num(S.settings.margins[m.type])/100));}
-function mineOf(m,Wcm){return roundUp(baseOf(m,Wcm)*(1+num(S.settings.myMargins[m.type])/100));}
+// my share is a % of the manufacturing cost, added on top of the father's price
+function mineOf(m,Wcm){return roundUp(baseOf(m,Wcm)+costOf(m,Wcm)*num(S.settings.myMargins[m.type])/100);}
 function offerOf(m,Wcm){return roundUp(mineOf(m,Wcm)*(1+num(S.settings.offer.pct)/100));}
 function valueOf(kind,m,w){return kind==="cost"?costOf(m,w):kind==="base"?baseOf(m,w):kind==="mine"?mineOf(m,w):offerOf(m,w);}
 const KINDS={cost:"سعر التصنيع (التكلفة)",base:"سعر الوالد (البيع الأساسي)",mine:"سعري (البيع للعميل)",offer:"سعر العروض (قبل الخصم)"};
@@ -454,7 +455,7 @@ function viewSetup(){
    '<label>الطول الثابت (متر)</label><div><input type="number" step="any" class="sm" data-sf="length" value="'+num(s.length)+'"></div>'+
    '<label>العروض (سم)</label><div><input type="text" class="w" id="widths" value="'+s.widths.join("، ")+'"><div class="muted">افصل بينهم بفاصلة، مثلاً: 90، 100، 120، 160</div></div>'+
    TYPE_ORDER.map(t=>'<label>ربح الوالد — '+TYPES[t]+' %</label><div><input type="number" step="any" class="sm" data-sf="margins.'+t+'" value="'+num(s.margins[t])+'"> <span class="muted">على التكلفة</span></div>').join("")+
-   TYPE_ORDER.map(t=>'<label>نسبتي — '+TYPES[t]+' %</label><div><input type="number" step="any" class="sm" data-sf="myMargins.'+t+'" value="'+num(s.myMargins[t])+'"> <span class="muted">على سعر الوالد</span></div>').join("")+
+   TYPE_ORDER.map(t=>'<label>نسبتي — '+TYPES[t]+' %</label><div><input type="number" step="any" class="sm" data-sf="myMargins.'+t+'" value="'+num(s.myMargins[t])+'"> <span class="muted">من التكلفة، بتتزوّد على سعر الوالد</span></div>').join("")+
    '<label>تقريب الأسعار لأقرب</label><div><input type="number" step="any" class="sm" data-sf="round" value="'+num(s.round)+'"> <span class="muted">جنيه (0 = من غير تقريب)</span></div>'+
    '<label>جدول العروض</label><div><label class="switch"><input type="checkbox" data-sf="offer.on" '+(s.offer.on?"checked":"")+'> مفعّل</label> &nbsp; زيادة <input type="number" step="any" class="sm" data-sf="offer.pct" value="'+num(s.offer.pct)+'"> % على سعري</div>'+
    '<label>المشاهدين يشوفوا</label><div><label class="switch"><input type="checkbox" data-sf="viewer.base" '+(s.viewer.base?"checked":"")+'> سعر الوالد</label> &nbsp; <label class="switch"><input type="checkbox" data-sf="viewer.mine" '+(s.viewer.mine?"checked":"")+'> سعري</label> &nbsp; <label class="switch"><input type="checkbox" data-sf="viewer.offer" '+(s.viewer.offer?"checked":"")+'> سعر العروض</label><div class="muted">التكلفة عمرها ما بتوصل للمشاهدين. سعر العروض بيظهر لهم بس لو جدول العروض مفعّل.</div></div>'+
@@ -469,7 +470,7 @@ function viewSetup(){
    '<li><b>من البلوك</b> (إسفنج، ريبوند): سعر البلوك ÷ حجمه بالمتر المكعب = سعر المتر المكعب، وبعدين × مساحة الطبقة × سُمكها.</li>'+
    '<li>«المتر» معناه قطعة عرضها 1 متر وطولها '+LCM()+' سم، والسعر «للمتر المربع» بيتضرب في المساحة على طول.</li>'+
    '<li>الارتفاع = مجموع سُمك طبقات «وش واحد» + سُمك «الوشين» × 2، إلا لو كتبت ارتفاع يدوي.</li>'+
-   '<li>سعر الوالد = التكلفة × (1 + ربح الوالد). سعري = سعر الوالد × (1 + نسبتي). سعر العروض = سعري × (1 + نسبة العرض). وكل سعر بيتقرّب لفوق.</li>'+
+   '<li>سعر الوالد = التكلفة × (1 + ربح الوالد). سعري = سعر الوالد + (التكلفة × نسبتي). سعر العروض = سعري × (1 + نسبة العرض). وكل سعر بيتقرّب لفوق.</li>'+
    '<li>المشاهدين بيشوفوا الأسعار اللي انت معلّم عليها في «المشاهدين يشوفوا» بس — مش بيشوفوا التكلفة ولا المكونات.</li></ul></div>';
 }
 
