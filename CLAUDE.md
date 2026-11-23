@@ -4,6 +4,8 @@ Pricing tool for an Egyptian mattress maker. Mattress types: spring (سوست), 
 
 Recipes (Nov 2026): foams are priced per 1 cm (t=1, qty = cm) from a reference sheet/block. Spring = 17 cm springs + felt + fabric (3 cm) + hard foam for the rest. Semi = same 20 cm + 5 cm rebond + rest half hard / half soft. Medical 20/25 = 14 rebond + 2 fabric + super soft; 30 = 14 rebond + 2 fabric + half soft / half super soft; 35 = 14 rebond + 2 fabric + super soft. Premium 30 = medical 25 + 5 memory foam; premium 35 = premium 30 + 5 super soft. Hotel = 2 fabric + hard. Every recipe sets `hOverride` to its nominal height so the fabric sides use the real height.
 
+`price_list` is rebuilt only by the owner's browser (on load and on every save). After editing `pricing_state` by SQL, the viewers' list stays stale until the owner opens the site — open it (or rebuild `price_list` the same way) and check it before reporting prices as live.
+
 `pricing_backups` keeps snapshots of `pricing_state` taken before bulk data changes. components (fabric, felt, sponge, rebond, spring chassis, glue, packaging, labor) are combined into mattress models; the site outputs manufacturing-cost, sale-price and optional "offer" (pre-discount) tables for every width at a fixed length.
 
 ## Stack
