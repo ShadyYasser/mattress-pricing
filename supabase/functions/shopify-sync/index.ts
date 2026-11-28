@@ -24,9 +24,9 @@ type Want = { price: number; compare?: number | null; label: string };
 
 let cachedToken: { token: string; exp: number } | null = null;
 async function shopToken(): Promise<string | null> {
-  const legacy = Deno.env.get("SHOPIFY_ADMIN_TOKEN");
+  const legacy = Deno.env.get("SHOPIFY_ADMIN_TOKEN")?.trim();
   if (legacy) return legacy;
-  const id = Deno.env.get("SHOPIFY_CLIENT_ID"), secret = Deno.env.get("SHOPIFY_CLIENT_SECRET");
+  const id = Deno.env.get("SHOPIFY_CLIENT_ID")?.trim(), secret = Deno.env.get("SHOPIFY_CLIENT_SECRET")?.trim();
   if (!id || !secret) return null;
   if (cachedToken && cachedToken.exp > Date.now() + 60_000) return cachedToken.token;
   const r = await fetch(`https://${SHOP}.myshopify.com/admin/oauth/access_token`, {
@@ -34,7 +34,10 @@ async function shopToken(): Promise<string | null> {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ grant_type: "client_credentials", client_id: id, client_secret: secret }),
   });
-  if (!r.ok) throw new Error(`token_failed (${r.status}) ${(await r.text()).slice(0, 200)}`);
+  if (!r.ok) {
+    const txt = (await r.text()).replace(/<(style|script|head)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    throw new Error(`token_failed (${r.status}) ${txt.slice(0, 300)}`);
+  }
   const j = await r.json();
   cachedToken = { token: j.access_token, exp: Date.now() + (j.expires_in || 3600) * 1000 };
   return cachedToken.token;

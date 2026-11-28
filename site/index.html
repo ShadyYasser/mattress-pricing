@@ -440,7 +440,7 @@ function viewShop(){
    '<div class="bar"><button class="btn" data-act="shop-preview" '+(shopBusy?"disabled":"")+'>قارن مع المتجر</button><button class="btn pri" data-act="shop-push" '+(shopBusy?"disabled":"")+'>حدّث أسعار المتجر</button>'+(dirty||saving?'<span class="muted">التعديلات لسه بتتحفظ — الأسعار اللي هتتبعت هي اللي قدامك.</span>':'')+'</div></div>';
   if(!shopRes)return h;
   if(shopRes.loading)return h+'<div class="card empty">'+(shopRes.loading==="push"?"بيحدّث المتجر...":"بيقارن مع المتجر...")+'</div>';
-  if(shopRes.error){let m=shopRes.error;for(const k in SHOP_ERR)if(String(m).includes(k))m=SHOP_ERR[k];return h+'<div class="note err">'+esc(m)+'</div>';}
+  if(shopRes.error){const raw=String(shopRes.error);let m=raw;for(const k in SHOP_ERR)if(raw.includes(k))m=SHOP_ERR[k];if(/client secret/i.test(raw))m="شوبيفاي بيقول إن الـ Client secret غلط — انسخه تاني من إعدادات التطبيق وحطه في SHOPIFY_CLIENT_SECRET";return h+'<div class="note err">'+esc(m)+(m!==raw?'<div class="muted ltr" style="font-size:12px;margin-top:4px">'+esc(raw.slice(0,200))+'</div>':'')+'</div>';}
   if(shopRes.configured===false)return h+setupShopHTML();
   const r=shopRes,ch=r.changes||[];
   if(r.action==="push"){
