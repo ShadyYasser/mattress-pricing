@@ -28,5 +28,14 @@ Recipes (Nov 2026): foams are priced per 1 cm (t=1, qty = cm) from a reference s
 - Four price levels, each rounded up to `round`: cost → base (father's price) = cost × (1 + margins[type]%) → mine (owner's price to customers) = base + cost × myMargins[type]% (the owner's share is a % of the cost, not of the base) → offer (pre-discount, optional) = mine × (1 + offer.pct%).
 - `settings.viewer` {base, mine, offer} picks which levels are written to `price_list`; viewers never receive levels that are switched off, and never the cost.
 
+## Traders (التجار)
+- `pricing_state.data.traders[]` = materials sold to traders `{id,name,unit,cost,margin,price,handle}`. Sale price = `price` if > 0, else roundUp(cost × (1 + margin%)). Seeded from the store's 4 trader products.
+- `settings.viewer.traders` writes `price_list.traders[] {name,unit,price}` (no cost) for viewers.
+
+## Shopify link (store r8d1p5-nu, «الإمبراطور | Al Embrator»)
+- Edge function `shopify-sync` (`supabase/functions/shopify-sync`, verify_jwt off, checks owner via `my_role()` itself). Actions `preview` (diff) and `push` (productVariantsBulkUpdate).
+- The owner's browser sends the computed prices; mattress variants match by SKU `EMB-{SPR|SEMI|MED|PREM|HARD}-{width}-{height}`, trader products by handle. Store price = «سعري» (mine); when `settings.shop.compareAt` is on, compareAtPrice = offer (or cleared when the offer table is off).
+- Secrets `SHOPIFY_CLIENT_ID` / `SHOPIFY_CLIENT_SECRET` (Dev Dashboard app, read/write_products, client-credentials grant) are set by the owner in Supabase; never in the repo. Optional `SHOPIFY_SHOP`, `SHOPIFY_ADMIN_TOKEN`.
+
 ## Conventions
 - UI text in Egyptian Arabic; code and commits in English.
